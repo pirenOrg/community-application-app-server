@@ -8,9 +8,9 @@ import { Posts } from './entities/post.entity';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Post('/input')
-  create(@Body() createPostDto: CreatePostDto) {
-    return this.postService.create(createPostDto);
+  @Post('/write')
+  create(@Headers('user_id') user_id:number, @Body() createPostDto: CreatePostDto) {
+    return this.postService.create(user_id, createPostDto);
   }
 
   @Get()

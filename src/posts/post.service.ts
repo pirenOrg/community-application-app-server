@@ -12,7 +12,8 @@ export class PostService {
     private postRepository:Repository<Posts>,
   ){}
   
-  create(createPostDto: CreatePostDto):Promise<CreatePostDto> {
+  create(user_id:number, createPostDto: CreatePostDto):Promise<CreatePostDto> {
+    createPostDto.user_id = user_id
     return this.postRepository.save(createPostDto);
   }
 

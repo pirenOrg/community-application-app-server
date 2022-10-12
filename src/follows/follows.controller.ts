@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Headers, Body } from '@nestjs/common';
 import { FollowsService } from './follows.service';
-import { CreateFollowDto } from './dto/create-follow.dto';
-import { UpdateFollowDto } from './dto/update-follow.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('follows')
 export class FollowsController {
-  constructor(private readonly followsService: FollowsService) {}
+  constructor(
+    private readonly followsService: FollowsService,
+    private readonly usersService: UsersService
+  ) {}
 
   @Post()
-  create(@Body() createFollowDto: CreateFollowDto) {
-    return this.followsService.create(createFollowDto);
-  }
+  async createFollow(@Headers('user_id') user_id: number, @Body('email') email: string) {
+    const target_id = await this.usersService.findUserIdByEmail(email);
 
-  @Get()
-  findAll() {
-    return this.followsService.findAll();
-  }
+    await this.followsService.findFollowDataByIds(user_id, target_id);
+    await this.followsService.create(user_id, target_id);
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.followsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFollowDto: UpdateFollowDto) {
-    return this.followsService.update(+id, updateFollowDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.followsService.remove(+id);
+    return Object.assign({ message: "팔로우 성공" });
   }
 }

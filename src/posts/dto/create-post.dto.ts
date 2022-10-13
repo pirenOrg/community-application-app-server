@@ -2,7 +2,6 @@ export class CreatePostDto {
     title:string;
     content:string;
     user_id:number;
-    emoticon_id:number;
 }
 
 export class CreateCommentDto{

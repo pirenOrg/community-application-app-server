@@ -3,6 +3,12 @@ import { PostService } from './post.service';
 import { CreatePostDto, CreateCommentDto, CreateEmoticonDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Posts } from './entities/post.entity';
+import * as jwt from 'jsonwebtoken'
+import * as dotenv from 'dotenv'
+interface JwtPayload{
+  id:number;
+}
+dotenv.config()
 
 @Controller('post')
 export class PostController {
@@ -10,17 +16,26 @@ export class PostController {
 
   @Post('/write')
   createPost(@Headers('token') token:string, @Body() createPostDto: CreatePostDto) {
-    return this.postService.createPost(token, createPostDto);
+    const key = process.env.JWT_SECRET_KEY
+    const verified = jwt.verify(token, key) as JwtPayload
+    createPostDto.user_id = verified.id;
+    return this.postService.createPost(createPostDto);
   }
 
   @Post('/comment')
   createComment(@Headers('token') token:string, @Body() createCommentDto: CreateCommentDto) {
-    return this.postService.createComment(token,createCommentDto);
+    const key = process.env.JWT_SECRET_KEY
+    const verified = jwt.verify(token, key) as JwtPayload
+    createCommentDto.user_id = verified.id;
+    return this.postService.createComment(createCommentDto);
   }
 
   @Post('/emoticon')
   createEmoticon(@Headers('token') token:string, @Body() createEmoticonDto: CreateEmoticonDto){
-    return this.postService.createEmoticon(token,createEmoticonDto);
+    const key = process.env.JWT_SECRET_KEY
+    const verified = jwt.verify(token, key) as JwtPayload
+    createEmoticonDto.user_id = verified.id;
+    return this.postService.createEmoticon(createEmoticonDto);
   }
 
   @Get()
@@ -39,11 +54,17 @@ export class PostController {
 
   @Patch('/:id')
   update(@Headers('token') token:string, @Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(id, token, updatePostDto);
+    const key = process.env.JWT_SECRET_KEY
+    const verified = jwt.verify(token, key) as JwtPayload
+    const user_id = verified.id
+    return this.postService.update(id, user_id, updatePostDto);
   }
 
   @Delete('/:id')
   remove(@Headers('token') token:string, @Param('id') id: number) {
-    return this.postService.remove(id, token);
+    const key = process.env.JWT_SECRET_KEY
+    const verified = jwt.verify(token, key) as JwtPayload
+    const user_id = verified.id
+    return this.postService.remove(id, user_id);
   }
 }

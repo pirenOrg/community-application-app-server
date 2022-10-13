@@ -75,9 +75,3 @@ export class Post_emoticons {
     @Column()
     emoticon_id: number;
 }
-
-
-
-
-
-

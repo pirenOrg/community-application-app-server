@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { UserDto } from './dto/userDto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Payload } from './security/payload.interface';
@@ -22,17 +22,17 @@ export class UsersService {
     }
   };
 
-  async hashedPassword(user: UserDto): Promise<void> {
+  async hashedPassword(user: CreateUserDto): Promise<void> {
     user.password = await bcrypt.hash(user.password, 10);
     return Promise.resolve();
   }
 
-  create = async (userData: UserDto): Promise<void> => {
+  create = async (userData: CreateUserDto): Promise<void> => {
     await this.hashedPassword(userData);
     await this.userRepository.save(userData);
   };
 
-  async validateUser(user: UserDto): Promise<{ accessToken: string } | undefined> {
+  async validateUser(user: CreateUserDto): Promise<{ accessToken: string } | undefined> {
     let userFind: User = await this.userRepository.findOneBy({ email: user.email });
     if (!userFind) {
       throw new BadRequestException({ message: 'user does not exist' });

@@ -1,6 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { validate } from 'class-validator';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 import { UsersService } from '../users.service';
 import { Payload } from './payload.interface';

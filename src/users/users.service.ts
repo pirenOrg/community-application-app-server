@@ -1,26 +1,54 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { UserDto } from './dto/userDto';
+import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
+import { Payload } from './security/payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private jwtService: JwtService
+  ) {}
+
+  findUser = async (newUser: FindOptionsWhere<User>): Promise<void> => {
+    let userData = await this.userRepository.findOneBy({ email: newUser.email });
+    if (userData) {
+      throw new BadRequestException('already exist email');
+    }
+  };
+
+  async hashedPassword(user: UserDto): Promise<void> {
+    user.password = await bcrypt.hash(user.password, 10);
+    return Promise.resolve();
   }
 
-  findAll() {
-    return `This action returns all users`;
+  create = async (userData: UserDto): Promise<void> => {
+    await this.hashedPassword(userData);
+    console.log(userData);
+    await this.userRepository.save(userData);
+  };
+
+  async validateUser(user: UserDto): Promise<{ accessToken: string } | undefined> {
+    let userFind: User = await this.userRepository.findOneBy({ email: user.email });
+
+    const validatePassword = await bcrypt.compare(user.password, userFind.password);
+    if (!userFind || !validatePassword) {
+      throw new UnauthorizedException();
+    }
+
+    const payload: Payload = { id: userFind.id, email: userFind.email };
+
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async tokenValidateUser(payload: Payload): Promise<UserDto | undefined> {
+    return await this.userRepository.findOneBy({ id: payload.id });
   }
 }

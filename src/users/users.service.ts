@@ -48,7 +48,8 @@ export class UsersService {
     };
   }
 
-  async tokenValidateUser(payload: Payload): Promise<UserDto | undefined> {
-    return await this.userRepository.findOneBy({ id: payload.id });
+  async tokenValidateUser(payload: Payload): Promise<Payload | undefined> {
+    const data = await this.userRepository.findOneBy({ id: payload.id });
+    return { id: data.id, email: data.email };
   }
 }

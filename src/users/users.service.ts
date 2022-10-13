@@ -29,15 +29,16 @@ export class UsersService {
 
   create = async (userData: UserDto): Promise<void> => {
     await this.hashedPassword(userData);
-    console.log(userData);
     await this.userRepository.save(userData);
   };
 
   async validateUser(user: UserDto): Promise<{ accessToken: string } | undefined> {
     let userFind: User = await this.userRepository.findOneBy({ email: user.email });
-
+    if (!userFind) {
+      throw new BadRequestException({ message: 'user does not exist' });
+    }
     const validatePassword = await bcrypt.compare(user.password, userFind.password);
-    if (!userFind || !validatePassword) {
+    if (!validatePassword) {
       throw new UnauthorizedException();
     }
 

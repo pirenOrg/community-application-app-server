@@ -59,12 +59,23 @@ export class UsersService {
     return { id: data.id, email: data.email };
   }
 
-  async findUserIdByEmail(email: string): Promise<number> {
+  async findUserIDByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
 
     if (!user) {
-      throw new NotFoundException('해당 이메일의 유저는 존재하지 않습니다.');
+      throw new BadRequestException({ message: 'user does not exist' });
     }
-    return user.id;
+    return user;
   }
+
+  async findUserByID(user_id: number): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id: user_id });
+
+    if (!user) {
+      throw new NotFoundException({message: `user id ${user_id} does not exist`});
+
+    }
+    return user
+  }
+
 }

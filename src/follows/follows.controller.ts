@@ -1,21 +1,24 @@
 import { Controller, Post, Headers, Body } from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { UsersService } from 'src/users/users.service';
+import * as jwt from 'jsonwebtoken'
+interface JwtPayload{
+  id:number;
+}
 
 @Controller('follows')
 export class FollowsController {
   constructor(
     private readonly followsService: FollowsService,
     private readonly usersService: UsersService
-  ) {}
-
+  ) { }
+  
   @Post()
-  async createFollow(@Headers('user_id') user_id: number, @Body('email') email: string) {
-    const target_id = await this.usersService.findUserIdByEmail(email);
-
-    await this.followsService.findFollowDataByIds(user_id, target_id);
-    await this.followsService.create(user_id, target_id);
-
-    return Object.assign({ message: "팔로우 성공" });
+  async createFollow(@Headers('token') token: string, @Body('email') email: string) {
+    const key = process.env.JWT_SECRET_KEY
+    const verified = jwt.verify(token, key) as JwtPayload
+    const user_id = verified.id;
+    await this.followsService.create(user_id, email);
+    return Object.assign({ message: 'follow success' });
   }
 }

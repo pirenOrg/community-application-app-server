@@ -1,20 +1,29 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'follows' })
-export class Follow { 
+export class Follows { 
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()     // todo : 수정 외래키로 연결해야지?
-    follower_id: number;
+    @ManyToOne(() => User, (user) => user.followers)
+    @JoinColumn({ name: 'follower_id' })
+    follower_id: User;
+    
+    @ManyToOne(() => User, (user) => user.followings)
+    @JoinColumn({ name: 'followee_id' })
+    followee_id: User;
 
-    @Column()     // todo : 수정 외래키로 연결해야지?
-    followee_id: number;
-
-    @Column({type: "tinyint", nullable: true})    // null일 수도 있지?
-    is_block: number;      // 1: 차단안함
+    @Column({type: "tinyint", nullable: true})
+    is_block: number; 
 
     @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
-}
 
+    @UpdateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP(6)',
+        onUpdate: 'CURRENT_TIMESTAMP(6)',
+      })
+      updated_at: Date;
+}

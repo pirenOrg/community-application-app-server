@@ -1,33 +1,31 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
-import { Follow as Follows } from './entities/follow.entity';
+import { Follows } from './entities/follow.entity';
 
 @Injectable()
 export class FollowsService {
-  constructor(@InjectRepository(Follows) private followsRepository: Repository<Follows>) {}
+  constructor(
+    @InjectRepository(Follows) private followsRepository: Repository<Follows>, private usersService: UsersService) { }
+  
+  async create(user_id: number, email: string): Promise<void> {
+    const follow = new Follows()
+    follow.follower_id = await this.usersService.findUserByID(user_id);
+    follow.followee_id = await this.usersService.findUserIDByEmail(email)
 
-  async create(follower_id: number, followee_id: number): Promise<void> {
-    const followUser = new Follows();
-    followUser.follower_id = follower_id;
-    followUser.followee_id = followee_id;
+    // 이미 팔로우한 유저 막는 부분 현재 안되고 있음..
+    // const existFollow = await this.followsRepository.find({
+    //   where: {
+    //     follower_id: follow.follower_id,
+    //     followee_id: follow.followee_id
+    //   },
+    // });
 
-    await this.followsRepository.save(followUser);
-    
-  }
-
-  async findFollowDataByIds(from_user_id: number, target_id: number) {
-    const result = await this.followsRepository.findAndCount({
-      where: [
-        {
-          follower_id: from_user_id,
-          followee_id: target_id,
-        },
-      ],
-    });
-
-    if (result[1] !== 0) {
-      throw new ConflictException('이미 팔로우한 유저입니다.');
-    }
+    // if (existFollow) {
+    //   throw new ConflictException('이미 팔로우한 유저입니다.');
+    // }
+  
+    await this.followsRepository.save(follow)
   }
 }

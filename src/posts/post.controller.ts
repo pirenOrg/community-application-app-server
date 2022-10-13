@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Headers, Body, Patch, Param, Delete, BadRequestException } from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostDto } from './dto/create-post.dto';
+import { CreatePostDto, CreateCommentDto, CreateEmoticonDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Posts } from './entities/post.entity';
 
@@ -9,8 +9,18 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Post('/write')
-  create(@Headers('user_id') user_id:number, @Body() createPostDto: CreatePostDto) {
-    return this.postService.create(user_id, createPostDto);
+  createPost(@Headers('token') token:string, @Body() createPostDto: CreatePostDto) {
+    return this.postService.createPost(token, createPostDto);
+  }
+
+  @Post('/comment')
+  createComment(@Headers('token') token:string, @Body() createCommentDto: CreateCommentDto) {
+    return this.postService.createComment(token,createCommentDto);
+  }
+
+  @Post('/emoticon')
+  createEmoticon(@Headers('token') token:string, @Body() createEmoticonDto: CreateEmoticonDto){
+    return this.postService.createEmoticon(token,createEmoticonDto);
   }
 
   @Get()
@@ -19,7 +29,7 @@ export class PostController {
   }
 
   @Get('/:id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     if (+id < 1) {
       throw new BadRequestException('id는 0보다 큰 값이어야 합니다.');
     }
@@ -28,12 +38,12 @@ export class PostController {
   }
 
   @Patch('/:id')
-  update(@Headers('user_id') user_id:number, @Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, user_id, updatePostDto);
+  update(@Headers('token') token:string, @Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
+    return this.postService.update(id, token, updatePostDto);
   }
 
   @Delete('/:id')
-  remove(@Headers('user_id') user_id:number, @Param('id') id: string) {
-    return this.postService.remove(+id, user_id);
+  remove(@Headers('token') token:string, @Param('id') id: number) {
+    return this.postService.remove(id, token);
   }
 }

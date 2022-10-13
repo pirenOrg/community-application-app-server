@@ -59,23 +59,23 @@ export class UsersService {
     return { id: data.id, email: data.email };
   }
 
-  async findUserIDByEmail(email: string): Promise<User> {
+  async findUserIDByEmail(email: string): Promise<number> {
     const user = await this.userRepository.findOneBy({ email });
 
     if (!user) {
       throw new BadRequestException({ message: 'user does not exist' });
     }
-    return user;
+    return user.id;
   }
 
-  async findUserByID(user_id: number): Promise<User> {
+  async findUserByID(user_id: number): Promise<number> {
     const user = await this.userRepository.findOneBy({ id: user_id });
 
     if (!user) {
       throw new NotFoundException({message: `user id ${user_id} does not exist`});
 
     }
-    return user
+    return user.id
   }
 
 }

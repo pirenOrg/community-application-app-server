@@ -8,11 +8,11 @@ export class Follows {
 
     @ManyToOne(() => User, (user) => user.followers)
     @JoinColumn({ name: 'follower_id' })
-    follower_id: User;
+    follower_id: number;
     
     @ManyToOne(() => User, (user) => user.followings)
     @JoinColumn({ name: 'followee_id' })
-    followee_id: User;
+    followee_id: number;
 
     @Column({type: "tinyint", nullable: true})
     is_block: number; 

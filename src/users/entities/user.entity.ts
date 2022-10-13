@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany
 } from 'typeorm';
+import { Follows } from '../../follows/entities/follow.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -29,4 +31,10 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updated_at: Date;
+
+  @OneToMany(() => Follows, (follow) => follow.follower_id)
+  followers: Follows[];
+
+  @OneToMany(() => Follows, (follow) => follow.followee_id)
+  followings: Follows[];
 }

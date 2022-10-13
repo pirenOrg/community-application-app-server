@@ -1,33 +1,49 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
-import { Follow as Follows } from './entities/follow.entity';
+import { Follows } from './entities/follow.entity';
 
 @Injectable()
 export class FollowsService {
-  constructor(@InjectRepository(Follows) private followsRepository: Repository<Follows>) {}
+  constructor(
+    @InjectRepository(Follows) private followsRepository: Repository<Follows>,
+    private usersService: UsersService
+  ) {}
 
-  async create(follower_id: number, followee_id: number): Promise<void> {
-    const followUser = new Follows();
-    followUser.follower_id = follower_id;
-    followUser.followee_id = followee_id;
+  async create(user_id: number, email: string): Promise<void> {
+    const follow = new Follows();
+    follow.follower_id = await this.usersService.findUserByID(user_id);
+    follow.followee_id = await this.usersService.findUserIDByEmail(email);
 
-    await this.followsRepository.save(followUser);
+    const existFollow = await this.followsRepository
+      .createQueryBuilder()
+      .where('follower_id = :follower_id AND followee_id = :followee_id', {
+        follower_id: follow.follower_id,
+        followee_id: follow.followee_id,
+      })
+      .getOne();
+
+    if (existFollow) {
+      throw new ConflictException('already followed.');
+    }
     
+    await this.followsRepository.save(follow);
   }
 
-  async findFollowDataByIds(from_user_id: number, target_id: number) {
-    const result = await this.followsRepository.findAndCount({
-      where: [
-        {
-          follower_id: from_user_id,
-          followee_id: target_id,
-        },
-      ],
-    });
+  async remove(user_id: number, target_id: number): Promise<void> {
+    const followResult = await this.followsRepository
+      .createQueryBuilder()
+      .where('follower_id = :follower_id AND followee_id = :followee_id', {
+        follower_id: user_id,
+        followee_id: target_id,
+      })
+      .getOne();
 
-    if (result[1] !== 0) {
-      throw new ConflictException('이미 팔로우한 유저입니다.');
+    if (!followResult) {
+      throw new NotFoundException('follow data does not exist');
     }
+
+    await this.followsRepository.delete({ follower_id: user_id, followee_id: target_id });
   }
 }

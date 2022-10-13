@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Follow } from './entities/follow.entity';
+import { Follows } from './entities/follow.entity';
 import { FollowsService } from './follows.service';
 import { FollowsController } from './follows.controller';
 import { UsersService } from 'src/users/users.service';
@@ -11,7 +11,7 @@ import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Follow, User]),
+    TypeOrmModule.forFeature([Follows, User]),
     JwtModule.register({ secret: process.env.JWT_SECRET_KEY, signOptions: { expiresIn: '5h' } }),
     PassportModule,
   ],

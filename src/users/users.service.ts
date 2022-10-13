@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -52,5 +57,14 @@ export class UsersService {
   async tokenValidateUser(payload: Payload): Promise<Payload | undefined> {
     const data = await this.userRepository.findOneBy({ id: payload.id });
     return { id: data.id, email: data.email };
+  }
+
+  async findUserIdByEmail(email: string): Promise<number> {
+    const user = await this.userRepository.findOneBy({ email });
+
+    if (!user) {
+      throw new NotFoundException('해당 이메일의 유저는 존재하지 않습니다.');
+    }
+    return user.id;
   }
 }
